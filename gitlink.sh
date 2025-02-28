@@ -2,13 +2,28 @@
 
 # Function to display usage
 usage() {
-    echo "Usage: gitlink --clone <repo-link> [folder]"
-    echo "       gitlink --init <repo-link> [folder] [--add r/g/rg]"
-    exit 1
+    echo -e "\e[1;34mGitLink - A simple Git helper script\e[0m"
+    echo "Usage:"
+    echo "  gitlink --clone <repo-link> [folder]"
+    echo "      - Clones the repository into the specified folder (default: current directory)"
+    echo
+    echo "  gitlink --init <repo-link> [folder] [--add r/g/rg]"
+    echo "      - Initializes a new repository, pulling remote changes if necessary"
+    echo "      - If the remote is not empty, it pulls with rebase to prevent conflicts"
+    echo "      - The '--add' flag can be used to include:"
+    echo "          'r'  → Adds README.md"
+    echo "          'g'  → Adds .gitignore"
+    echo "          'rg' → Adds both README.md and .gitignore"
+    echo
+    echo "  gitlink --help"
+    echo "      - Displays this help message"
+    exit 0
 }
 
-# Check if at least two arguments are provided
-if [ -z "$1" ] || [ -z "$2" ]; then
+# Check if at least two arguments are provided (except for --help)
+if [ "$1" == "--help" ]; then
+    usage
+elif [ -z "$1" ] || [ -z "$2" ]; then
     usage
 fi
 
@@ -44,19 +59,26 @@ if [ "$MODE" == "--clone" ]; then
     exit 0
 fi
 
-# Initialize mode: Check if remote repository is empty
-if git ls-remote --exit-code "$REPO_LINK" &>/dev/null; then
-    echo -e "\e[31m✖ Initialization failed. The remote repository is not empty.\e[0m"
-    exit 1
-fi
-
-# Initialize a new repository
+# Initialize mode
 mkdir -p "$TARGET_DIR"
 cd "$TARGET_DIR" || exit
 
 git init && echo -e "\e[32m✔ Git repository initialized in $TARGET_DIR\e[0m"
 git branch -M main && echo -e "\e[32m✔ Branch set to main\e[0m"
 git remote add origin "$REPO_LINK" && echo -e "\e[32m✔ Remote origin added: $REPO_LINK\e[0m"
+
+# Check if remote repository is empty
+if git ls-remote --exit-code "$REPO_LINK" &>/dev/null; then
+    echo -e "\e[33m⚠ Remote repository is NOT empty. Attempting to pull with rebase...\e[0m"
+
+    git fetch origin main
+    if git rebase origin/main; then
+        echo -e "\e[32m✔ Rebase successful. Local changes applied on top of remote.\e[0m"
+    else
+        echo -e "\e[31m✖ Major conflict detected! Resolve conflicts manually and retry.\e[0m"
+        exit 1
+    fi
+fi
 
 # Add .gitignore if requested
 if [ "$ADD_GITIGNORE" = true ]; then
@@ -84,6 +106,13 @@ if ! git commit -m "Initial commit"; then
     echo -e "\e[31m✖ Commit failed. Please resolve conflicts manually.\e[0m"
     exit 1
 fi
-git branch --set-upstream-to=origin/main && echo -e "\e[32m✔ Upstream set to origin/main\e[0m"
+
+# Push changes to remote
+if git push --set-upstream origin main; then
+    echo -e "\e[32m✔ Changes pushed successfully!\e[0m"
+else
+    echo -e "\e[31m✖ Push failed! Resolve conflicts and push manually.\e[0m"
+    exit 1
+fi
 
 echo -e "\e[32m✔ Git setup completed successfully in $TARGET_DIR\e[0m"
