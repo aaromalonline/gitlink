@@ -1,41 +1,40 @@
 #!/bin/bash
 
-# Check if at least the repo link is provided
-if [ -z "$1" ] || { [ -n "$2" ] && [ -z "$2" ]; }; then
-    echo "Usage: initialize [folder] <ssh-repo-link>"
+# Function to display usage
+usage() {
+    echo "Usage: gitlink --clone <repo-link> [folder]"
+    echo "       gitlink --init <repo-link> [folder]"
     exit 1
+}
+
+# Check if at least two arguments are provided
+if [ -z "$1" ] || [ -z "$2" ]; then
+    usage
 fi
 
-# Determine if a folder argument is provided
-if [ -z "$2" ]; then
-    REPO_LINK="$1"
-    TARGET_DIR="$(pwd)"
-else
-    TARGET_DIR="$1"
-    REPO_LINK="$2"
+# Parse options
+MODE="$1"
+REPO_LINK="$2"
+TARGET_DIR="${3:-$(pwd)}"
 
-    # Create and navigate to the target directory if it doesn't exist
-    if [ ! -d "$TARGET_DIR" ]; then
-        mkdir -p "$TARGET_DIR"
-    fi
-    cd "$TARGET_DIR" || exit
+# Ensure valid mode
+if [[ "$MODE" != "--clone" && "$MODE" != "--init" ]]; then
+    usage
 fi
 
-# Check if remote repository has any content
-git ls-remote --exit-code "$REPO_LINK" &>/dev/null
-if [ $? -eq 0 ]; then
-    echo -e "\e[33m✔ Remote repository contains data. Cloning instead.\e[0m"
-    git clone --depth=1 "$REPO_LINK" .
+# Clone mode
+if [ "$MODE" == "--clone" ]; then
+    echo -e "\e[33m✔ Cloning repository into $TARGET_DIR\e[0m"
+    git clone --depth=1 "$REPO_LINK" "$TARGET_DIR"
     exit 0
 fi
 
-# Initialize git repository
+# Initialize mode
+mkdir -p "$TARGET_DIR"
+cd "$TARGET_DIR" || exit
+
 git init && echo -e "\e[32m✔ Git repository initialized in $TARGET_DIR\e[0m"
-
-# Set branch to main
 git branch -M main && echo -e "\e[32m✔ Branch set to main\e[0m"
-
-# Add remote origin
 git remote add origin "$REPO_LINK" && echo -e "\e[32m✔ Remote origin added: $REPO_LINK\e[0m"
 
 # Ask user whether to create a .gitignore file
@@ -43,8 +42,6 @@ read -p "Do you want to add a .gitignore file? (y/n): " ADD_GITIGNORE
 if [[ "$ADD_GITIGNORE" =~ ^[Yy]$ ]]; then
     echo "# Add files to ignore below" > .gitignore
     echo -e "\e[32m✔ .gitignore file added\e[0m"
-    
-    # Ask user for files to ignore
     while true; do
         read -p "Enter a file or pattern to ignore (or press Enter to finish): " IGNORE_ENTRY
         if [ -z "$IGNORE_ENTRY" ]; then
@@ -64,8 +61,7 @@ fi
 
 # Add, commit files
 git add . && echo -e "\e[32m✔ Files added\e[0m"
-git commit -m "current" && echo -e "\e[32m✔ Commit created\e[0m"
-
+git commit -m "Initial commit" && echo -e "\e[32m✔ Commit created\e[0m"
 git branch --set-upstream-to=origin/main && echo -e "\e[32m✔ Upstream set to origin/main\e[0m"
 
 echo -e "\e[32m✔ Git setup completed successfully in $TARGET_DIR\e[0m"
