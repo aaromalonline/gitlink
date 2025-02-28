@@ -9,12 +9,19 @@ GitLink is a command-line utility that simplifies the process of cloning and ini
 
 1. Download the `gitlink` script.
 2. Make it executable:
+   
    ```bash
    chmod +x gitlink
    ```
-3. Move it to a directory in your system's `$PATH`, such as `/usr/local/bin`:
+4. Move it to a directory in your system's `$PATH`, such as `/usr/local/bin`:
+   
    ```bash
    sudo mv gitlink /usr/local/bin/
+   ```
+5. help
+
+   ```bash
+   gitlink --help
    ```
 
 ## Usage
