@@ -25,7 +25,10 @@ fi
 # Clone mode
 if [ "$MODE" == "--clone" ]; then
     echo -e "\e[33m✔ Cloning repository into $TARGET_DIR\e[0m"
-    git clone --depth=1 "$REPO_LINK" "$TARGET_DIR"
+    if ! git clone --depth=1 "$REPO_LINK" "$TARGET_DIR"; then
+        echo -e "\e[31m✖ Cloning failed. Please resolve conflicts manually.\e[0m"
+        exit 1
+    fi
     exit 0
 fi
 
@@ -61,7 +64,10 @@ fi
 
 # Add, commit files
 git add . && echo -e "\e[32m✔ Files added\e[0m"
-git commit -m "Initial commit" && echo -e "\e[32m✔ Commit created\e[0m"
+if ! git commit -m "Initial commit"; then
+    echo -e "\e[31m✖ Commit failed. Please resolve conflicts manually.\e[0m"
+    exit 1
+fi
 git branch --set-upstream-to=origin/main && echo -e "\e[32m✔ Upstream set to origin/main\e[0m"
 
 echo -e "\e[32m✔ Git setup completed successfully in $TARGET_DIR\e[0m"
