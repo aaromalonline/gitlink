@@ -55,9 +55,17 @@ if [[ "$ADD_GITIGNORE" =~ ^[Yy]$ ]]; then
     done
 fi
 
-# Add, commit, and push files
+# Ask user whether to create a README file
+read -p "Do you want to add a README.md file? (y/n): " ADD_README
+if [[ "$ADD_README" =~ ^[Yy]$ ]]; then
+    echo "# Project Title" > README.md
+    echo -e "\e[32m✔ README.md file added\e[0m"
+fi
+
+# Add, commit files
 git add . && echo -e "\e[32m✔ Files added\e[0m"
 git commit -m "current" && echo -e "\e[32m✔ Commit created\e[0m"
-git push -u origin main && echo -e "\e[32m✔ Changes pushed to main\e[0m"
+
+git branch --set-upstream-to=origin/main && echo -e "\e[32m✔ Upstream set to origin/main\e[0m"
 
 echo -e "\e[32m✔ Git setup completed successfully in $TARGET_DIR\e[0m"
