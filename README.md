@@ -1,6 +1,6 @@
 # GitLink
 
-GitLink is a command-line utility that simplifies the process of cloning and initializing Git repositories. It provides two primary modes of operation:
+GitLink is a command-line utility that simplifies the process of cloning and initializing Git repositories automating whole git repository setup. It provides two primary modes of operation:
 
 - **Clone Mode (`--clone`)**: Clones an existing Git repository into a specified directory.
 - **Init Mode (`--init`)**: Initializes a new Git repository in an empty directory and sets up a remote origin.
@@ -36,6 +36,10 @@ gitlink --clone git@github.com:user/repo.git myproject
 
 ### Initialize a New Repository
 
+- initialize a git repository in the specified folder with respective add arguments & change the main branch to main (incase master).
+- Add a remote connection origin to the remote repo and upstream it with main.
+- added, commited and pulled/pushed the current local repo to the remote repository.
+
 To initialize a new repository and set up a remote origin:
 ```bash
 gitlink --init <repo-link> [folder]
@@ -55,9 +59,17 @@ During initialization, GitLink prompts you to:
 - Add a `.gitignore` file.
 - Add a `README.md` file.
 
+## Workflow
+
+After the repository setup, workflow continues around with
+- git add .
+- git commit -m "some msg"
+- git pull --rebase && git push
+
+
 ## Features
-- Automates Git repository setup.
-- Ensures repositories are cloned correctly.
+- Automates the whole Git repository setup.
+- Ensures repositories are cloned/initialized correctly.
 - Supports SSH and HTTPS remote URLs.
 - Interactive prompts for adding `.gitignore` and `README.md`.
 
