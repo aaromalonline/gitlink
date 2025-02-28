@@ -3,7 +3,7 @@
 # Function to display usage
 usage() {
     echo "Usage: gitlink --clone <repo-link> [folder]"
-    echo "       gitlink --init <repo-link> [folder]"
+    echo "       gitlink --init <repo-link> [folder] [--add r/g/rg]"
     exit 1
 }
 
@@ -16,6 +16,18 @@ fi
 MODE="$1"
 REPO_LINK="$2"
 TARGET_DIR="${3:-$(pwd)}"
+ADD_README=false
+ADD_GITIGNORE=false
+
+# Handle --add flag with options
+if [[ "$4" == "--add" ]]; then
+    case "$5" in
+        "r") ADD_README=true ;;
+        "g") ADD_GITIGNORE=true ;;
+        "rg"|"gr") ADD_README=true; ADD_GITIGNORE=true ;;
+        *) echo -e "\e[31m✖ Invalid --add option. Use 'r' for README, 'g' for .gitignore, or 'rg' for both.\e[0m"; exit 1 ;;
+    esac
+fi
 
 # Ensure valid mode
 if [[ "$MODE" != "--clone" && "$MODE" != "--init" ]]; then
@@ -32,7 +44,13 @@ if [ "$MODE" == "--clone" ]; then
     exit 0
 fi
 
-# Initialize mode
+# Initialize mode: Check if remote repository is empty
+if git ls-remote --exit-code "$REPO_LINK" &>/dev/null; then
+    echo -e "\e[31m✖ Initialization failed. The remote repository is not empty.\e[0m"
+    exit 1
+fi
+
+# Initialize a new repository
 mkdir -p "$TARGET_DIR"
 cd "$TARGET_DIR" || exit
 
@@ -40,9 +58,8 @@ git init && echo -e "\e[32m✔ Git repository initialized in $TARGET_DIR\e[0m"
 git branch -M main && echo -e "\e[32m✔ Branch set to main\e[0m"
 git remote add origin "$REPO_LINK" && echo -e "\e[32m✔ Remote origin added: $REPO_LINK\e[0m"
 
-# Ask user whether to create a .gitignore file
-read -p "Do you want to add a .gitignore file? (y/n): " ADD_GITIGNORE
-if [[ "$ADD_GITIGNORE" =~ ^[Yy]$ ]]; then
+# Add .gitignore if requested
+if [ "$ADD_GITIGNORE" = true ]; then
     echo "# Add files to ignore below" > .gitignore
     echo -e "\e[32m✔ .gitignore file added\e[0m"
     while true; do
@@ -55,9 +72,8 @@ if [[ "$ADD_GITIGNORE" =~ ^[Yy]$ ]]; then
     done
 fi
 
-# Ask user whether to create a README file
-read -p "Do you want to add a README.md file? (y/n): " ADD_README
-if [[ "$ADD_README" =~ ^[Yy]$ ]]; then
+# Add README.md if requested
+if [ "$ADD_README" = true ]; then
     echo "# Project Title" > README.md
     echo -e "\e[32m✔ README.md file added\e[0m"
 fi

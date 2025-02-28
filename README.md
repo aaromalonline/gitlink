@@ -42,22 +42,24 @@ gitlink --clone git@github.com:user/repo.git myproject
 
 To initialize a new repository and set up a remote origin:
 ```bash
-gitlink --init <repo-link> [folder]
+gitlink --init <repo-link> [folder] [--add r/g/rg]
 ```
 
 - `<repo-link>`: SSH or HTTPS link to the Git repository.
 - `[folder]` (optional): Target directory for the new repository (defaults to the current directory).
+- `--add r/g/rg` (optional): Specify additional files to be created during initialization:
+  - `r` → Add `README.md`
+  - `g` → Add `.gitignore` (prompts for patterns to ignore)
+  - `rg` / `gr` → Add **both**
 
 Example:
 ```bash
-gitlink --init git@github.com:user/newrepo.git mynewproject
+gitlink --init git@github.com:user/newrepo.git mynewproject --add rg
 ```
 
-### Optional Features
-
-During initialization, GitLink prompts you to:
-- Add a `.gitignore` file.
-- Add a `README.md` file.
+### Important Notes
+- The `--init` mode **fails** if the remote repository is not empty.
+- `.gitignore` prompts for patterns to ignore only when explicitly requested with `--add g`.
 
 ## Workflow
 
@@ -71,7 +73,8 @@ After the repository setup, workflow continues around with
 - Automates the whole Git repository setup.
 - Ensures repositories are cloned/initialized correctly.
 - Supports SSH and HTTPS remote URLs.
-- Interactive prompts for adding `.gitignore` and `README.md`.
+- Allows optional addition of `README.md` and `.gitignore` files.
+- Ensures `--init` is only used with an empty remote repository.
 
 ## Requirements
 - Git must be installed.
